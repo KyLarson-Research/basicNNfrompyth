@@ -59,8 +59,52 @@ void copyArray(double* toCopy, double* dst, int size) {
     }
 }
 
+//Matrix createKernel(int rows, int cols, int filter_type){
+//    double* elements;
+//
+//    //Construct the kernels elements based on inputted filter
+//    switch (filter_type) {
+//    case BLUR: elements = new double[rows * cols];
+//               copyArray(BLUR_KERNEL, elements, rows * cols);
+//               break;
+//    case GAUSSIAN_BLUR: elements = new double[rows * cols];
+//                        copyArray(GAUSSIAN_BLUR_KERNEL, elements, rows * cols);
+//                        break;
+//    default: elements = new double[rows * cols];
+//             copyArray(BLUR_KERNEL, elements, rows * cols);
+//             break;
+//
+//    }
+//    Matrix kernel(rows, cols, elements);
+//    return kernel;
+//}
+
 // Formats and displays a 1-D array with as many rows/cols as given 
 void displayArray(std::string msg, double* array, int rows, int cols, bool show_dim) {
+    if (show_dim) {
+        std::cout << msg << "(" << rows << ", " << cols << ")" << std::endl;
+    }
+    else {
+        std::cout << msg;
+    }
+    std::cout << "[";
+    for (int element = 1; element <= rows * cols; element++) {
+        std::cout << array[element - 1];
+        if (element % cols == 0) {
+            std::cout << "]\n";
+            if (element < rows * cols) {
+                std::cout << "[";
+            }
+        }
+        else {
+            std::cout << ", ";
+        }
+    }
+    if (rows == 0 || cols == 0) {
+        std::cout << "]\n";
+    }
+}
+void displayArray(std::string msg, int* array, int rows, int cols, bool show_dim) {
     if (show_dim) {
         std::cout << msg << "(" << rows << ", " << cols << ")" << std::endl;
     }

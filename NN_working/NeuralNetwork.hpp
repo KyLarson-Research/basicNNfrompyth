@@ -10,7 +10,7 @@
 
 enum ReadResults{SUCCESS, FAILURE};
 
-const int EPOCH_UPDATE_OCCURENCE = 1;
+const int EPOCH_UPDATE_OCCURENCE = 25;
 
 struct ConnectedList {
 	ConnectedLayer layer;
@@ -58,7 +58,7 @@ class NeuralNetwork{
 		
 		void shutdown(std::string filename);
 
-		void train(Matrix inputs, Matrix expected, int epochs, double learning_rate);
+		void train(Matrix inputs, Matrix expected, int *expected_indexing, int epochs, double learning_rate);
 
 	private:
 		ConnectedList* clearConnectedList(ConnectedList* localPtr);

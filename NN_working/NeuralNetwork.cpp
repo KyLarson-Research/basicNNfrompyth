@@ -168,7 +168,7 @@ bool NeuralNetwork::isEmpty(){
 	return layer_cnt == 0;
 }
 
-void NeuralNetwork::train(Matrix inputs, Matrix expected, int epochs, double learning_rate){
+void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing, int epochs, double learning_rate){
 	if (conn_list == nullptr && act_list == nullptr) {
 		return;
 	}
@@ -190,7 +190,6 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int epochs, double lea
 	// Iterate for number of epochs
 	for (int cnt = 1; cnt <= epochs; cnt++) {
 		display_error = 0.0;
-
 		// Input each sample from inputs
 		for (int test = 1; test <= sample_cnt; test++) {
 			output_size = inputs.cols;
@@ -231,13 +230,12 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int epochs, double lea
 					}
 				}
 			}
-			//displayArray("Working Output After FP: ", working_output, 1, 1);
-			expected.getRow(test - 1, expected_sample);
+
+			expected.getRow(expected_indexing[test - 1], expected_sample);
 			display_error += error(expected_sample[0], working_output, output_size);
 
 			double* working_error = new double[expected.cols];
 			error_prime(expected_sample, working_output, working_error, expected.cols);
-			int len = expected.cols;
 
 			// Back Propagate through network
 			for (int curr_layer = layer_cnt; curr_layer >= 1; curr_layer--) {
@@ -245,7 +243,6 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int epochs, double lea
 					temp_conn->layer.backwardPropagation(working_error, learning_rate);
 
 					delete[] working_error;
-					len = temp_conn->layer.input_cnt;
 					working_error = new double[temp_conn->layer.input_cnt];
 					copyArray(temp_conn->layer.getBPR(), working_error, temp_conn->layer.input_cnt);
 
@@ -255,7 +252,6 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int epochs, double lea
 					temp_act->layer.backwardPropagation(working_error, learning_rate);
 
 					delete[] working_error;
-					len = temp_act->layer.input_cnt;
 					working_error = new double[temp_act->layer.input_cnt];
 					copyArray(temp_act->layer.getBPR(), working_error, temp_act->layer.input_cnt);
 
@@ -381,7 +377,6 @@ int NeuralNetwork::load(std::string filename) {
 			if (fh >> content && content == "Activate_Prime") {
 				if (!(fh >> activatePrimeName)) { return FAILURE; }
 			}
-			std::cout << "Funcs: " << activateName << ", " << activatePrimeName << std::endl;
 			ActivationLayer newActLayer(input_output, activateName, activatePrimeName);
 			addActivationLayer(newActLayer);
 		}

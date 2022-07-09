@@ -8,7 +8,13 @@
 const bool DELETE_MEM_ON_DESTROY = true;
 const bool DO_NOT_USE_DELETE = false;
 
+enum filter_types{BLUR, GAUSSIAN_BLUR};
+
+static double BLUR_KERNEL[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+static double GAUSSIAN_BLUR_KERNEL[] = {1, 2, 1, 2, 4, 2, 1, 2, 1};
+
 void displayArray(std::string msg, double* array, int rows, int cols, bool show_dim = true);
+void displayArray(std::string msg, int* array, int rows, int cols, bool show_dim = true);
 
 // Object for handling 2D arrays
 class Matrix{
@@ -70,6 +76,8 @@ int compareActualToExpected(Matrix expected, double* actual);
 int convertBinToInt(double* array, int size);
 
 void copyArray(double* toCopy, double* dst, int size);
+
+//Matrix createKernel(int width, int height, int filter_type);
 
 void dot(Matrix A, Matrix B, Matrix *result);
 
