@@ -9,6 +9,8 @@
 #include "ImageManagement.hpp"
 #include "ConvolutionalLayer.hpp"
 
+const char* image_folder = "resources\\training_data\\shapes\\*";
+
 void decToBinary(int n, double *dst, int bits)
 {
     // counter for binary array
@@ -28,33 +30,44 @@ void decToBinary(int n, double *dst, int bits)
 
 int main()
 {
+    //Disable openCV logging
+    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_SILENT);
 
     // Get start time
     auto start = std::chrono::system_clock::now();
 
-    srand((unsigned)time(nullptr)); // Seed the rand function
+    // Seed the rand function
+    srand((unsigned)time(nullptr));
 
-    // Training Data
-    const int cases = 3;
-    const int input_size = 20*20;
-    const int output_size = 2;
-    const int num_outputs = 3;
+    //Setup the networks training data
+    int* expected_indexing = nullptr;
+    double* expected_array = nullptr;
+    double* inputs_array = nullptr;
+    ImageData* imageData = (ImageData*)calloc(1, sizeof(ImageData));
+    if (imageData == nullptr) {
+        std::cout << "[main] Failure creating 'imageData'\n";
+        return -1;
+    }
 
-    int expected_indexing[num_outputs * output_size] = {0, 1, 2}; //Indicates which output the inputs correspond to
-    
-    double *inputs_array = createTrainingData("resources/20by20shapes");
+    //Use a folder full of images to initialize training data
+    createTrainingData(image_folder, &inputs_array, &expected_array, &expected_indexing, imageData);
 
-    double expected_array[] = {0, 0, 0, 1, 1, 0};
+    if (inputs_array == nullptr 
+        || expected_array == nullptr
+        || expected_indexing == nullptr) {
+        std::cout << "[main] Training Data failed to load from (" << image_folder << ")\n";
+        return -1;
+    }
 
-    Matrix input(cases, input_size, inputs_array);
-    Matrix expected(num_outputs, output_size, expected_array);
+    Matrix input(imageData->image_cnt, imageData->input_size, inputs_array);
+    Matrix expected(imageData->num_outputs, imageData->output_size, expected_array);
     double learning_rate = 0.1;
-    int epochs = 3000;
+    int epochs = 1000;
 
-    // Create the neural network
+     //Create the neural network
     
     // Load from file
-  /*  NeuralNetwork NN("NeuralNetworkData/NeuralNet_testing.properties");
+    /*NeuralNetwork NN("NeuralNetworkData/NeuralNet_testing.properties");
     if(NN.isEmpty()){
         std::cout << "[main] Error loading Neural Network from file, program terminated\n";
         return -1;
@@ -64,14 +77,14 @@ int main()
     NeuralNetwork NN(1, "meanSquaredError", "meanSquaredErrorPrime");
 
     // Create and add layers to the network
-    int first_layer_size = 50;
-    int second_layer_size = 25;
-    ConnectedLayer layer_one(input_size, first_layer_size);
+    int first_layer_size = 25;
+    int second_layer_size = 10;
+    ConnectedLayer layer_one(imageData->input_size, first_layer_size);
     ActivationLayer layer_two(first_layer_size, "tan_hb", "tan_hb_prime");
     ConnectedLayer layer_three(first_layer_size, second_layer_size);
     ActivationLayer layer_four(second_layer_size, "tan_hb", "tan_hb_prime");
-    ConnectedLayer layer_five(second_layer_size, output_size);
-    ActivationLayer layer_six(output_size, "tan_hb", "tan_hb_prime");
+    ConnectedLayer layer_five(second_layer_size, imageData->output_size);
+    ActivationLayer layer_six(imageData->output_size, "tan_hb", "tan_hb_prime");
 
     NN.addConnectedLayer(layer_one);
     NN.addActivationLayer(layer_two);
@@ -84,21 +97,21 @@ int main()
     NN.train(input, expected, expected_indexing, epochs, learning_rate);
 
     //Use network to predict output based on input
-    double* predicted = new double[output_size];
-    double* test = new double[input_size];
-    double* expected_result = new double[output_size];
+    double* predicted = new double[imageData->output_size];
+    double* test = new double[imageData->input_size];
+    double* expected_result = new double[imageData->output_size];
     std::cout << "\nPrediction Results: \n";
     std::cout << "-------------------\n\n";
     std::string temp;
-    for (int i = 0; i < cases; i++) {
-        std::cin >> temp;
+    for (int i = 0; i < imageData->image_cnt; i++) {
+        //std::cin >> temp;
         expected.getRow(expected_indexing[i], expected_result);
         input.getRow(i, test);
 
-        NN.predict(test, predicted, input_size);
+        NN.predict(test, predicted, imageData->input_size);
 
-        displayArray("Expected Output: ", expected_result, 1, output_size, false);
-        displayArray("Actual: ", predicted, 1, output_size, false);
+        displayArray("Expected Output: ", expected_result, 1, imageData->output_size, false);
+        displayArray("Actual: ", predicted, 1, imageData->output_size, false);
         std::cout << std::endl;
     }
 
@@ -110,6 +123,9 @@ int main()
     delete[] expected_result;
     delete[] test;
     delete[] inputs_array;
+    delete[] expected_array;
+    delete[] expected_indexing;
+    free(imageData);
 
     // Get end time and display elapsed time
     auto end = std::chrono::system_clock::now();

@@ -87,6 +87,10 @@ void displayArray(std::string msg, double* array, int rows, int cols, bool show_
     else {
         std::cout << msg;
     }
+    if (array == nullptr) { 
+        std::cout << "NULLPTR\n"; 
+        return; 
+    }
     std::cout << "[";
     for (int element = 1; element <= rows * cols; element++) {
         std::cout << array[element - 1];

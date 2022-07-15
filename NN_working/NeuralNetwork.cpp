@@ -180,7 +180,10 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 	int sample_cnt = inputs.rows;
 	
 	double* expected_sample = new double[expected.cols];
-	double display_error = 0.0;
+	double display_error = 0.0, error_delta = 0.0, prev_error = 0.0;
+	bool init_error_delta = true;
+	int quit_level = 5;
+	double tolerance = 0.00001;
 	int output_size = 0;
 
 	// Pointers for layer LL traversal
@@ -190,6 +193,10 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 	// Iterate for number of epochs
 	for (int cnt = 1; cnt <= epochs; cnt++) {
 		display_error = 0.0;
+
+		// Get start time
+		auto epoch_start = std::chrono::system_clock::now();
+
 		// Input each sample from inputs
 		for (int test = 1; test <= sample_cnt; test++) {
 			output_size = inputs.cols;
@@ -257,9 +264,6 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 
 					temp_act = temp_act->prev;
 				}
-				else {
-					std::cout << "\n[NeuralNetwork.train] Error: Layer Not Found\n";
-				}
 			}
 			// Clear memory associated with the output/error to prepare for the next sample
 			delete[] working_output;
@@ -267,9 +271,36 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 		}
 
 		display_error /= sample_cnt;
+
+		//Calculate estimated time remaining
+		auto epoch_end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed = epoch_end - epoch_start;
+		std::chrono::duration<double> time_remaining = elapsed * (epochs - cnt);
+
 		//Output average error to user every EPOCH_UPDATE_OCCURENCE iterations (for efficiency)
 		if (cnt % EPOCH_UPDATE_OCCURENCE == 0) {
-			std::cout << "Epoch " << cnt << "/" << epochs << ": error = " << display_error << std::endl;
+			std::cout << "\33[2K\r";
+			std::cout << "Epoch " << cnt << "/" << epochs << ": error = " << display_error;
+			std::cout << "   <Estimated Time Remaining: " << std::fixed << std::setprecision(2) << time_remaining.count() / 60 << " minutes>";
+		}
+
+		//Keep track of change in error, if small enough quit training the network
+		if(init_error_delta){
+			prev_error = display_error;
+			init_error_delta = false;
+		}
+		else {
+			double temp = abs(prev_error - display_error);
+			if (error_delta > 0.0) {
+				if (abs(temp - error_delta) < tolerance) {
+					quit_level--;
+				}
+			}
+			error_delta = temp;
+		}
+		if (quit_level == 0) {
+			std::cout << "\nEarly Quit\n";
+			break;
 		}
 	}
 	
