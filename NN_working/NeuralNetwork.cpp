@@ -176,6 +176,8 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 	std::cout << "\nBegin Training Section: \n";
 	std::cout << "-----------------------\n\n";
 
+	bool early_quit = true;
+
 	// Determine sample size
 	int sample_cnt = inputs.rows;
 	
@@ -280,6 +282,7 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 		//Output average error to user every EPOCH_UPDATE_OCCURENCE iterations (for efficiency)
 		if (cnt % EPOCH_UPDATE_OCCURENCE == 0) {
 			std::cout << "\33[2K\r";
+			std::cout << std::fixed << std::setprecision(6);
 			std::cout << "Epoch " << cnt << "/" << epochs << ": error = " << display_error;
 			std::cout << "   <Estimated Time Remaining: " << std::fixed << std::setprecision(2) << time_remaining.count() / 60 << " minutes>";
 		}
@@ -298,7 +301,7 @@ void NeuralNetwork::train(Matrix inputs, Matrix expected, int *expected_indexing
 			}
 			error_delta = temp;
 		}
-		if (quit_level == 0) {
+		if (early_quit && quit_level == 0) {
 			std::cout << "\nEarly Quit\n";
 			break;
 		}

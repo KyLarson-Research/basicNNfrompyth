@@ -58,13 +58,12 @@ int main()
         std::cout << "[main] Training Data failed to load from (" << image_folder << ")\n";
         return -1;
     }
-
     Matrix input(imageData->image_cnt, imageData->input_size, inputs_array);
     Matrix expected(imageData->num_outputs, imageData->output_size, expected_array);
-    double learning_rate = 0.1;
+    double learning_rate = 0.15;
     int epochs = 1000;
 
-     //Create the neural network
+    //Create the neural network
     
     // Load from file
     /*NeuralNetwork NN("NeuralNetworkData/NeuralNet_testing.properties");
@@ -77,8 +76,8 @@ int main()
     NeuralNetwork NN(1, "meanSquaredError", "meanSquaredErrorPrime");
 
     // Create and add layers to the network
-    int first_layer_size = 25;
-    int second_layer_size = 10;
+    int first_layer_size = 16;
+    int second_layer_size = 4;
     ConnectedLayer layer_one(imageData->input_size, first_layer_size);
     ActivationLayer layer_two(first_layer_size, "tan_hb", "tan_hb_prime");
     ConnectedLayer layer_three(first_layer_size, second_layer_size);

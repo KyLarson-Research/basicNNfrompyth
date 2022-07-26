@@ -12,7 +12,7 @@
 
 enum ReadResults{SUCCESS, FAILURE};
 
-const int EPOCH_UPDATE_OCCURENCE = 25;
+const int EPOCH_UPDATE_OCCURENCE = 1;
 
 struct ConnectedList {
 	ConnectedLayer layer;
